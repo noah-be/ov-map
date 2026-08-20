@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 import type { ConnectionStatus, MapEntity, WorldMapData } from '../../shared/world'
 
 export const useWorldStore = defineStore('world', () => {
-  let liveRefresh: number | null = null
   const world = ref<WorldMapData | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -54,12 +53,6 @@ export const useWorldStore = defineStore('world', () => {
   async function initialize(): Promise<void> {
     await load()
     await refreshConnection()
-    if (liveRefresh === null) {
-      liveRefresh = window.setInterval(() => {
-        void load()
-        void refreshConnection()
-      }, 1000)
-    }
   }
 
   async function refreshConnection(): Promise<void> {
@@ -91,11 +84,6 @@ export const useWorldStore = defineStore('world', () => {
       connection.value = (await statusResponse.json()) as ConnectionStatus
       if (connection.value.state === 'complete') {
         await load()
-        if (liveRefresh !== null) window.clearInterval(liveRefresh)
-        liveRefresh = window.setInterval(() => {
-          void load()
-          void refreshConnection()
-        }, 1000)
         return
       }
       if (connection.value.state === 'error') {
