@@ -203,6 +203,11 @@ function onWheel(event: WheelEvent): void {
   draw()
 }
 
+function zoomBy(factor: number): void {
+  viewport.scale = Math.min(100, Math.max(0.02, viewport.scale * factor))
+  draw()
+}
+
 onMounted(() => {
   resizeObserver = new ResizeObserver(() => draw())
   if (canvas.value) resizeObserver.observe(canvas.value)
@@ -212,7 +217,7 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 watch(() => [props.entities, props.selectedId], draw, { deep: true })
 watch(() => props.bounds, fitWorld, { deep: true })
 
-defineExpose({ fitWorld })
+defineExpose({ fitWorld, zoomBy })
 </script>
 
 <template>
@@ -227,7 +232,13 @@ defineExpose({ fitWorld })
       @pointercancel="drag = null"
       @wheel="onWheel"
     />
-    <button class="fit-button" type="button" title="Fit world" @click="fitWorld">Fit map</button>
+    <div class="zoom-controls" aria-label="Map zoom controls">
+      <button type="button" aria-label="Zoom in" title="Zoom in" @click="zoomBy(1.5)">+</button>
+      <button type="button" aria-label="Zoom out" title="Zoom out" @click="zoomBy(1 / 1.5)">
+        −
+      </button>
+      <button class="fit-button" type="button" title="Fit world" @click="fitWorld">Fit map</button>
+    </div>
     <div class="axis" aria-hidden="true"><span>N</span><i></i></div>
   </div>
 </template>
@@ -253,16 +264,32 @@ canvas:active {
   cursor: grabbing;
 }
 
-.fit-button {
+.zoom-controls {
   position: absolute;
   right: 1rem;
   bottom: 1rem;
+  display: grid;
+  grid-template-columns: 2.75rem 2.75rem auto;
+  gap: 0.4rem;
+}
+
+.zoom-controls button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   padding: 0.55rem 0.8rem;
   border: 1px solid #385261;
   border-radius: 0.5rem;
   color: #dbe9ee;
   background: rgb(15 28 35 / 88%);
   cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.zoom-controls .fit-button {
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .axis {
