@@ -1,6 +1,6 @@
 import { gunzipSync } from 'node:zlib'
 
-import type { MapEntity, Vector3, WorldBounds, WorldMapData } from '../shared/world.js'
+import type { MapAvatar, MapEntity, Vector3, WorldBounds, WorldMapData } from '../shared/world.js'
 
 const DEFAULT_DIMENSIONS: Vector3 = { x: 1, y: 1, z: 1 }
 const EMPTY_BOUNDS: WorldBounds = { minX: -10, maxX: 10, minZ: -10, maxZ: 10 }
@@ -120,5 +120,34 @@ export function parseWorldBuffer(buffer: Buffer, source: string): WorldMapData {
     bounds: calculateBounds(entities),
     types,
     entities,
+    avatars: [],
   }
+}
+
+export function parseLiveSnapshot(snapshot: unknown, source: string): WorldMapData {
+  if (!isRecord(snapshot) || !Array.isArray(snapshot.entities)) {
+    throw new Error('Expected a connector snapshot with an entities array')
+  }
+  const world = parseWorldBuffer(
+    Buffer.from(JSON.stringify({ Version: 65, Entities: snapshot.entities })),
+    source,
+  )
+  world.loadedAt = typeof snapshot.timestamp === 'string' ? snapshot.timestamp : world.loadedAt
+  world.avatars = Array.isArray(snapshot.avatars)
+    ? snapshot.avatars.flatMap((raw): MapAvatar[] => {
+        if (!isRecord(raw) || !isRecord(raw.orientation)) return []
+        return [{
+          id: stringValue(raw.id) ?? 'unknown-avatar',
+          displayName: stringValue(raw.displayName) ?? 'Anonymous',
+          position: vector(raw.position, { x: 0, y: 0, z: 0 }),
+          orientation: {
+            x: finiteNumber(raw.orientation.x),
+            y: finiteNumber(raw.orientation.y),
+            z: finiteNumber(raw.orientation.z),
+            w: finiteNumber(raw.orientation.w, 1),
+          },
+        }]
+      })
+    : []
+  return world
 }

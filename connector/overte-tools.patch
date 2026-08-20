@@ -1,0 +1,10 @@
+diff --git a/tools/CMakeLists.txt b/tools/CMakeLists.txt
+--- a/tools/CMakeLists.txt
++++ b/tools/CMakeLists.txt
+@@ -29,6 +29,7 @@ if (OVERTE_BUILD_TOOLS)
+         ice-client
+         ktx-tool
+         ac-client
++        ov-map-connector
+         skeleton-dump
+         atp-client

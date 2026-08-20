@@ -19,6 +19,13 @@ export interface MapEntity {
   description: string | null
 }
 
+export interface MapAvatar {
+  id: string
+  displayName: string
+  position: Vector3
+  orientation: { x: number; y: number; z: number; w: number }
+}
+
 export interface WorldBounds {
   minX: number
   maxX: number
@@ -34,4 +41,12 @@ export interface WorldMapData {
   bounds: WorldBounds
   types: Record<string, number>
   entities: MapEntity[]
+  avatars: MapAvatar[]
+}
+
+export interface ConnectionStatus {
+  state: 'idle' | 'connecting' | 'complete' | 'error'
+  address: string | null
+  message: string
+  startedAt: string | null
 }

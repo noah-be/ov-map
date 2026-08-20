@@ -6,11 +6,16 @@ import { useWorldStore } from './stores/world'
 
 const store = useWorldStore()
 const map = ref<InstanceType<typeof WorldMap> | null>(null)
+const address = ref('')
 const sortedTypes = computed(() =>
   Object.entries(store.world?.types ?? {}).sort((left, right) => right[1] - left[1]),
 )
 
 onMounted(() => store.load())
+
+async function connectToWorld(): Promise<void> {
+  await store.connect(address.value)
+}
 </script>
 
 <template>
@@ -25,6 +30,26 @@ onMounted(() => store.load())
         <span>entities · export v{{ store.world.version ?? 'unknown' }}</span>
       </div>
     </header>
+
+    <form class="connect" @submit.prevent="connectToWorld">
+      <label for="world-address">Online world</label>
+      <div>
+        <input
+          id="world-address"
+          v-model="address"
+          autocomplete="off"
+          placeholder="Place name or hifi:// address"
+          :disabled="store.connection.state === 'connecting'"
+        />
+        <button
+          type="submit"
+          :disabled="store.connection.state === 'connecting' || !address.trim()"
+        >
+          {{ store.connection.state === 'connecting' ? 'Scanning…' : 'Connect' }}
+        </button>
+      </div>
+      <small v-if="store.connection.state !== 'idle'">{{ store.connection.message }}</small>
+    </form>
 
     <section v-if="store.loading" class="notice">Loading world data…</section>
     <section v-else-if="store.error" class="notice error" role="alert">
@@ -96,7 +121,8 @@ onMounted(() => store.load())
 
       <WorldMap
         ref="map"
-        :entities="store.visibleEntities"
+          :entities="store.visibleEntities"
+          :avatars="store.world?.avatars ?? []"
         :bounds="store.world.bounds"
         :selected-id="store.selectedId"
         @select="store.select"
@@ -152,6 +178,46 @@ header {
   align-items: end;
   justify-content: space-between;
   gap: 1rem;
+}
+.connect {
+  display: grid;
+  max-width: 100rem;
+  margin: 0 auto 1rem;
+  gap: 0.4rem;
+}
+.connect > label {
+  color: #9db0b9;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.connect > div {
+  display: flex;
+  gap: 0.5rem;
+}
+.connect input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #304752;
+  border-radius: 0.45rem;
+  color: #ecf4f6;
+  background: #0a1419;
+}
+.connect button {
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.45rem;
+  color: #092019;
+  background: #66d4c0;
+  cursor: pointer;
+  font-weight: 750;
+}
+.connect button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.connect small {
+  color: #7f969f;
 }
 .eyebrow {
   margin: 0 0 0.35rem;

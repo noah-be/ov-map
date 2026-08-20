@@ -4,6 +4,8 @@ import { resolve } from 'node:path'
 
 import type { WorldMapData } from '../shared/world.js'
 import { loadWorld } from './world-source.js'
+import { OnlineConnector } from './online-connector.js'
+import { parseLiveSnapshot } from './world-parser.js'
 
 const root = process.cwd()
 const app = express()
@@ -13,6 +15,10 @@ const refreshSeconds = Math.max(Number(process.env.OV_MAP_REFRESH_SECONDS ?? 60)
 
 let world: WorldMapData | null = null
 let loadError: string | null = null
+const onlineConnector = new OnlineConnector((snapshot, address) => {
+  world = parseLiveSnapshot(snapshot, address)
+  loadError = null
+})
 
 async function refreshWorld(): Promise<void> {
   try {
@@ -37,6 +43,17 @@ app.get('/api/world', (_request, response) => {
   response.json(world)
 })
 
+app.get('/api/connection', (_request, response) => response.json(onlineConnector.status))
+
+app.post('/api/connect', express.json({ limit: '8kb' }), async (request, response) => {
+  try {
+    const address = typeof request.body?.address === 'string' ? request.body.address : ''
+    response.status(202).json(await onlineConnector.connect(address, root))
+  } catch (error) {
+    response.status(400).json({ error: error instanceof Error ? error.message : String(error) })
+  }
+})
+
 const clientDirectory = resolve(root, 'dist')
 if (existsSync(clientDirectory)) {
   app.use(express.static(clientDirectory))
@@ -46,7 +63,9 @@ if (existsSync(clientDirectory)) {
 }
 
 await refreshWorld()
-setInterval(refreshWorld, refreshSeconds * 1000).unref()
+setInterval(() => {
+  if (onlineConnector.status.state !== 'complete') void refreshWorld()
+}, refreshSeconds * 1000).unref()
 
 app.listen(port, () => {
   console.info(`ov-map listening on http://localhost:${port}`)

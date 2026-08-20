@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 
-import type { MapEntity, WorldBounds } from '../../shared/world'
+import type { MapAvatar, MapEntity, WorldBounds } from '../../shared/world'
 
 const props = defineProps<{
   entities: MapEntity[]
   bounds: WorldBounds
   selectedId: string | null
+  avatars: MapAvatar[]
 }>()
 const emit = defineEmits<{ select: [entity: MapEntity | null] }>()
 
@@ -145,6 +146,20 @@ function draw(): void {
       context.fillText(entity.name, point.x + entityWidth / 2 + 5, point.y + 4)
     }
   }
+
+  for (const avatar of props.avatars) {
+    const point = worldToScreen(avatar.position.x, avatar.position.z)
+    context.beginPath()
+    context.arc(point.x, point.y, 7, 0, Math.PI * 2)
+    context.fillStyle = '#ff5f8f'
+    context.fill()
+    context.strokeStyle = '#ffffff'
+    context.lineWidth = 2
+    context.stroke()
+    context.fillStyle = '#ffffff'
+    context.font = '600 12px system-ui'
+    context.fillText(avatar.displayName, point.x + 11, point.y + 4)
+  }
 }
 
 function pickEntity(clientX: number, clientY: number): MapEntity | null {
@@ -214,7 +229,7 @@ onMounted(() => {
   nextTick(fitWorld)
 })
 onBeforeUnmount(() => resizeObserver?.disconnect())
-watch(() => [props.entities, props.selectedId], draw, { deep: true })
+watch(() => [props.entities, props.avatars, props.selectedId], draw, { deep: true })
 watch(() => props.bounds, fitWorld, { deep: true })
 
 defineExpose({ fitWorld, zoomBy })

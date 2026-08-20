@@ -1,15 +1,22 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import type { MapEntity, WorldMapData } from '../../shared/world'
+import type { ConnectionStatus, MapEntity, WorldMapData } from '../../shared/world'
 
 export const useWorldStore = defineStore('world', () => {
+  let liveRefresh: number | null = null
   const world = ref<WorldMapData | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   const selectedId = ref<string | null>(null)
   const hiddenTypes = ref(new Set<string>())
   const search = ref('')
+  const connection = ref<ConnectionStatus>({
+    state: 'idle',
+    address: null,
+    message: 'Ready to connect',
+    startedAt: null,
+  })
 
   const selectedEntity = computed(
     () => world.value?.entities.find((entity) => entity.id === selectedId.value) ?? null,
@@ -44,6 +51,38 @@ export const useWorldStore = defineStore('world', () => {
     }
   }
 
+  async function connect(address: string): Promise<void> {
+    error.value = null
+    const response = await fetch('/api/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address }),
+    })
+    const body = (await response.json()) as ConnectionStatus & { error?: string }
+    if (!response.ok) {
+      error.value = body.error ?? `Connection API returned HTTP ${response.status}`
+      return
+    }
+    connection.value = body
+    const startedAt = Date.now()
+    while (Date.now() - startedAt < 45_000) {
+      await new Promise((resolve) => window.setTimeout(resolve, 1000))
+      const statusResponse = await fetch('/api/connection')
+      connection.value = (await statusResponse.json()) as ConnectionStatus
+      if (connection.value.state === 'complete') {
+        await load()
+        if (liveRefresh !== null) window.clearInterval(liveRefresh)
+        liveRefresh = window.setInterval(() => void load(), 1000)
+        return
+      }
+      if (connection.value.state === 'error') {
+        error.value = connection.value.message
+        return
+      }
+    }
+    error.value = 'The world scan timed out after 45 seconds'
+  }
+
   function toggleType(type: string): void {
     const next = new Set(hiddenTypes.value)
     if (next.has(type)) next.delete(type)
@@ -63,8 +102,10 @@ export const useWorldStore = defineStore('world', () => {
     selectedEntity,
     hiddenTypes,
     search,
+    connection,
     visibleEntities,
     load,
+    connect,
     toggleType,
     select,
   }

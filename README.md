@@ -5,7 +5,9 @@ An unofficial community project for displaying Overte worlds as interactive web 
 > [!IMPORTANT]
 > ov-map is an independent hobby project. It is not an official Overte project and is not affiliated with or endorsed by the Overte organization.
 
-The first version reads an Overte entity export (`.json` or `models.json.gz`), normalizes its entities in a small Node.js service, and displays them as an interactive top-down map in Vue.
+The app can read an Overte entity export or use its native headless connector to
+stream a public world into the map. The connector speaks the normal Overte
+domain protocol directly; it does not automate Interface and needs no display.
 
 ## Features
 
@@ -16,6 +18,8 @@ The first version reads an Overte entity export (`.json` or `models.json.gz`), n
 - Entity position, size, description, and model details
 - Automatic source refresh
 - Bundled demo world for development
+- Anonymous live connection to public domains
+- Live player positions from the Avatar Mixer
 
 ## Development
 
@@ -54,8 +58,22 @@ Available server settings:
 | `OV_MAP_WORLD_SOURCE` | `sample-data/demo-world.json` | Local path or HTTP(S) URL to an entity export |
 | `OV_MAP_REFRESH_SECONDS` | `60` | Reload interval, with a minimum of five seconds |
 | `OV_MAP_PORT` | `8787` | API and production web server port |
+| `OV_MAP_CONNECTOR_PATH` | searched automatically | Path to the native headless connector |
 
 Remote downloads time out after 15 seconds and are limited to 64 MiB. The source is configured server-side; it cannot be changed through the public API.
+
+## Connect to a public world
+
+Build the native program as described in [connector/README.md](connector/README.md),
+then start ov-map with its path:
+
+```sh
+OV_MAP_CONNECTOR_PATH=/path/to/ov-map-connector npm run dev
+```
+
+Enter `overte_hub` in the web UI. The Node service keeps the connector running
+and updates entities and avatar positions once per second. Access is anonymous;
+domains that require authentication can reject the connection.
 
 ## Production
 
