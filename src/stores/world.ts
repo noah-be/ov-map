@@ -9,6 +9,7 @@ export const useWorldStore = defineStore('world', () => {
   const error = ref<string | null>(null)
   const selectedId = ref<string | null>(null)
   const hiddenTypes = ref(new Set<string>())
+  const hideUnnamed = ref(false)
   const search = ref('')
   const connection = ref<ConnectionStatus>({
     state: 'idle',
@@ -26,6 +27,7 @@ export const useWorldStore = defineStore('world', () => {
       world.value?.entities.filter(
         (entity) =>
           !hiddenTypes.value.has(entity.type) &&
+          !(hideUnnamed.value && /^Unnamed(?:\s|$)/i.test(entity.name)) &&
           (!query ||
             entity.name.toLowerCase().includes(query) ||
             entity.type.toLowerCase().includes(query)),
@@ -101,6 +103,11 @@ export const useWorldStore = defineStore('world', () => {
     hiddenTypes.value = next
   }
 
+  function showAll(): void {
+    hiddenTypes.value = new Set()
+    hideUnnamed.value = false
+  }
+
   function select(entity: MapEntity | null): void {
     selectedId.value = entity?.id ?? null
   }
@@ -112,6 +119,7 @@ export const useWorldStore = defineStore('world', () => {
     selectedId,
     selectedEntity,
     hiddenTypes,
+    hideUnnamed,
     search,
     connection,
     visibleEntities,
@@ -119,6 +127,7 @@ export const useWorldStore = defineStore('world', () => {
     initialize,
     connect,
     toggleType,
+    showAll,
     select,
   }
 })

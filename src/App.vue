@@ -10,6 +10,9 @@ const address = ref('')
 const sortedTypes = computed(() =>
   Object.entries(store.world?.types ?? {}).sort((left, right) => right[1] - left[1]),
 )
+const unnamedCount = computed(
+  () => store.world?.entities.filter((entity) => /^Unnamed(?:\s|$)/i.test(entity.name)).length ?? 0,
+)
 
 onMounted(() => store.initialize())
 
@@ -68,8 +71,13 @@ async function connectToWorld(): Promise<void> {
         <section class="filters" aria-labelledby="filter-title">
           <div class="section-heading">
             <h2 id="filter-title">Layers</h2>
-            <button type="button" @click="store.hiddenTypes.clear()">Show all</button>
+            <button type="button" @click="store.showAll()">Show all</button>
           </div>
+          <label>
+            <input v-model="store.hideUnnamed" type="checkbox" />
+            <span>Hide unnamed entities</span>
+            <small>{{ unnamedCount }}</small>
+          </label>
           <label v-for="[type, count] in sortedTypes" :key="type">
             <input
               type="checkbox"
