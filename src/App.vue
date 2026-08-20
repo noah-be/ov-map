@@ -11,7 +11,7 @@ const sortedTypes = computed(() =>
   Object.entries(store.world?.types ?? {}).sort((left, right) => right[1] - left[1]),
 )
 
-onMounted(() => store.load())
+onMounted(() => store.initialize())
 
 async function connectToWorld(): Promise<void> {
   await store.connect(address.value)

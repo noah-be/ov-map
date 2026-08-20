@@ -11,6 +11,7 @@ const root = process.cwd()
 const app = express()
 const port = Number(process.env.OV_MAP_PORT ?? 8787)
 const source = process.env.OV_MAP_WORLD_SOURCE ?? resolve(root, 'sample-data/demo-world.json')
+const defaultDomain = process.env.OV_MAP_DOMAIN ?? 'overte_hub'
 const refreshSeconds = Math.max(Number(process.env.OV_MAP_REFRESH_SECONDS ?? 60), 5)
 
 let world: WorldMapData | null = null
@@ -63,8 +64,13 @@ if (existsSync(clientDirectory)) {
 }
 
 await refreshWorld()
+try {
+  await onlineConnector.connect(defaultDomain, root)
+} catch (error) {
+  console.error(`Could not connect to ${defaultDomain}: ${error instanceof Error ? error.message : String(error)}`)
+}
 setInterval(() => {
-  if (onlineConnector.status.state !== 'complete') void refreshWorld()
+  if (onlineConnector.status.state === 'idle') void refreshWorld()
 }, refreshSeconds * 1000).unref()
 
 app.listen(port, () => {

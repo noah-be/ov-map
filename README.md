@@ -59,6 +59,7 @@ Available server settings:
 | `OV_MAP_REFRESH_SECONDS` | `60` | Reload interval, with a minimum of five seconds |
 | `OV_MAP_PORT` | `8787` | API and production web server port |
 | `OV_MAP_CONNECTOR_PATH` | searched automatically | Path to the native headless connector |
+| `OV_MAP_DOMAIN` | `overte_hub` | Public domain connected automatically at startup |
 
 Remote downloads time out after 15 seconds and are limited to 64 MiB. The source is configured server-side; it cannot be changed through the public API.
 

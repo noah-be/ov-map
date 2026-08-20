@@ -32,7 +32,7 @@ describe('parseWorldBuffer', () => {
     expect(world.types).toEqual({ Model: 1, Zone: 1 })
     expect(world.entities[0]?.position).toEqual({ x: 10, y: 2, z: -4 })
     expect(world.entities[1]?.visible).toBe(false)
-    expect(world.bounds.minX).toBeLessThanOrEqual(-10)
+    expect(world.bounds.minX).toBeGreaterThan(0)
     expect(world.bounds.maxX).toBeGreaterThanOrEqual(14)
   })
 

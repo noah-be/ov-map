@@ -74,7 +74,17 @@ function normalizeEntity(raw: unknown, index: number): MapEntity | null {
 function calculateBounds(entities: MapEntity[]): WorldBounds {
   if (entities.length === 0) return EMPTY_BOUNDS
 
-  const bounds = entities.reduce<WorldBounds>(
+  // Large zones are environmental volumes and can span the full octree. Using
+  // them for the initial viewport makes the actual world geometry invisible.
+  const mapGeometry = entities.filter(
+    (entity) =>
+      entity.type !== 'Zone' &&
+      entity.dimensions.x < 10_000 &&
+      entity.dimensions.z < 10_000,
+  )
+  const boundedEntities = mapGeometry.length > 0 ? mapGeometry : entities
+
+  const bounds = boundedEntities.reduce<WorldBounds>(
     (result, entity) => {
       const halfX = Math.max(entity.dimensions.x / 2, 0.25)
       const halfZ = Math.max(entity.dimensions.z / 2, 0.25)

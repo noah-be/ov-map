@@ -51,6 +51,26 @@ export const useWorldStore = defineStore('world', () => {
     }
   }
 
+  async function initialize(): Promise<void> {
+    await load()
+    await refreshConnection()
+    if (liveRefresh === null) {
+      liveRefresh = window.setInterval(() => {
+        void load()
+        void refreshConnection()
+      }, 1000)
+    }
+  }
+
+  async function refreshConnection(): Promise<void> {
+    try {
+      const response = await fetch('/api/connection')
+      connection.value = (await response.json()) as ConnectionStatus
+    } catch {
+      // The world endpoint already reports actionable server errors.
+    }
+  }
+
   async function connect(address: string): Promise<void> {
     error.value = null
     const response = await fetch('/api/connect', {
@@ -72,7 +92,10 @@ export const useWorldStore = defineStore('world', () => {
       if (connection.value.state === 'complete') {
         await load()
         if (liveRefresh !== null) window.clearInterval(liveRefresh)
-        liveRefresh = window.setInterval(() => void load(), 1000)
+        liveRefresh = window.setInterval(() => {
+          void load()
+          void refreshConnection()
+        }, 1000)
         return
       }
       if (connection.value.state === 'error') {
@@ -105,6 +128,7 @@ export const useWorldStore = defineStore('world', () => {
     connection,
     visibleEntities,
     load,
+    initialize,
     connect,
     toggleType,
     select,
