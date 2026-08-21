@@ -16,7 +16,7 @@ domain protocol directly; it does not automate Interface and needs no display.
 - Pan and cursor-centered zoom
 - Entity type layers and name search
 - Entity position, size, description, and model details
-- Automatic source refresh
+- Manual world refresh without page reloads
 - Bundled demo world for development
 - Anonymous live connection to public domains
 - Live player positions from the Avatar Mixer
@@ -84,6 +84,37 @@ OV_MAP_WORLD_SOURCE=/path/to/models.json.gz npm start
 ```
 
 The production server provides the API and the built Vue application at <http://localhost:8787>.
+
+## Docker Compose
+
+The CI pipeline publishes a self-contained Linux image containing the web app
+and native headless Overte connector to GitHub Container Registry.
+
+```yaml
+services:
+  ov-map:
+    image: ghcr.io/noah-be/ov-map:main
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8787:8787"
+    environment:
+      OV_MAP_DOMAIN: ${OV_MAP_DOMAIN:-overte_hub}
+```
+
+Start it with:
+
+```sh
+docker compose up -d
+```
+
+Open <http://localhost:8787>. Change `OV_MAP_DOMAIN` to another public place or
+domain, for example with `OV_MAP_DOMAIN=my-place docker compose up -d`. The
+image currently targets `linux/amd64`.
+
+Images are built for pushes to `main`, version tags, pull requests, and manual
+workflow runs. Published tags include `main`, `latest`, `sha-…`, and release
+tags such as `v0.1.0`.
 
 ## Quality checks
 

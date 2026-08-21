@@ -8,6 +8,9 @@ not start Interface, a display plugin, X11, or a virtual framebuffer.
 The first live test was made against Overte commit
 `9cd003d7f47149ec55b5432b799310ebd356efdc` and the public place
 `overte_hub`. It returned 749 entities and connected to the Avatar Mixer.
+The container build pins this commit from `noah-be/overte`; both repository and
+commit can be replaced with the `OVERTE_REPOSITORY` and `OVERTE_COMMIT` Docker
+build arguments.
 
 ## Build inside an Overte checkout
 

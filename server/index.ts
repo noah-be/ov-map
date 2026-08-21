@@ -9,7 +9,7 @@ import { parseLiveSnapshot } from './world-parser.js'
 
 const root = process.cwd()
 const app = express()
-const port = Number(process.env.OV_MAP_PORT ?? 8787)
+const port = Number(process.env.OV_MAP_PORT ?? process.env.PORT ?? 8787)
 const source = process.env.OV_MAP_WORLD_SOURCE ?? resolve(root, 'sample-data/demo-world.json')
 const defaultDomain = process.env.OV_MAP_DOMAIN ?? 'overte_hub'
 const refreshSeconds = Math.max(Number(process.env.OV_MAP_REFRESH_SECONDS ?? 60), 5)

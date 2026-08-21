@@ -1,0 +1,10 @@
+services:
+  ov-map:
+    image: ghcr.io/noah-be/ov-map:main
+    container_name: ov-map
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8787:8787"
+    environment:
+      OV_MAP_DOMAIN: ${OV_MAP_DOMAIN:-overte_hub}
