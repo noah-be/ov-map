@@ -11,6 +11,16 @@ export default mergeConfig(
       maxWorkers: 1,
       pool: 'threads',
       root: fileURLToPath(new URL('./', import.meta.url)),
+      coverage: {
+        include: ['server/**/*.ts', 'src/**/*.ts', 'src/**/*.vue'],
+        exclude: ['server/index.ts', 'src/main.ts'],
+        thresholds: {
+          statements: 80,
+          branches: 60,
+          functions: 70,
+          lines: 80,
+        },
+      },
     },
   }),
 )

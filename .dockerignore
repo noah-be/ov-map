@@ -5,5 +5,9 @@ coverage
 dist
 dist-server
 node_modules
+e2e
+tests
+playwright-report
+test-results
 runtime
 *.local

@@ -120,9 +120,15 @@ tags such as `v0.1.0`.
 
 ```sh
 npm run lint
-npm run test:unit -- --run
+npm run test:unit
+npm run test:integration
+npm run test:e2e
+npm run test:coverage
 npm run build
 ```
+
+The E2E suite uses Playwright with Chromium and a touch-sized Firefox viewport.
+Install the browsers once with `npx playwright install chromium firefox`.
 
 ## Technology
 

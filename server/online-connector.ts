@@ -63,6 +63,17 @@ export class OnlineConnector {
     return this.#status
   }
 
+  disconnect(): void {
+    if (this.#process && this.#process.exitCode === null) this.#process.kill('SIGTERM')
+    this.#process = null
+    this.#status = {
+      state: 'idle',
+      address: null,
+      message: 'Ready to connect',
+      startedAt: null,
+    }
+  }
+
   async connect(input: string, root: string): Promise<ConnectionStatus> {
     const address = normalizeAddress(input)
     const executable = await findConnector(root)
@@ -120,10 +131,11 @@ export class OnlineConnector {
     child.once('exit', (code) => {
       if (this.#process !== child) return
       if (this.#status.state !== 'error') {
+        const diagnostics = diagnostic.trim().split('\n')
         this.#status = {
           ...this.#status,
           state: 'error',
-          message: diagnostic.trim().split('\n').at(-1) ?? `Connector exited (${code})`,
+          message: diagnostics[diagnostics.length - 1] || `Connector exited (${code})`,
         }
       }
       this.#process = null

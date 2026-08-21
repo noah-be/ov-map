@@ -41,11 +41,12 @@ function normalizeEntity(raw: unknown, index: number): MapEntity | null {
   const dimensions = vector(raw.dimensions, DEFAULT_DIMENSIONS)
   const rawRotation = isRecord(raw.rotation) ? raw.rotation : null
   const rawColor = isRecord(raw.color) ? raw.color : null
+  const type = stringValue(raw.type) ?? 'Unknown'
 
   return {
     id: stringValue(raw.id) ?? stringValue(raw.entityID) ?? `entity-${index}`,
-    name: stringValue(raw.name) ?? `Unnamed ${String(raw.type ?? 'Entity')}`,
-    type: stringValue(raw.type) ?? 'Unknown',
+    name: stringValue(raw.name) ?? `Unnamed ${type === 'Unknown' ? 'Entity' : type}`,
+    type,
     position,
     dimensions,
     rotation: rawRotation

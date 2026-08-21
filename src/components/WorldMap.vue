@@ -224,7 +224,7 @@ function zoomBy(factor: number): void {
 }
 
 onMounted(() => {
-  resizeObserver = new ResizeObserver(() => draw())
+  resizeObserver = new ResizeObserver(() => window.requestAnimationFrame(draw))
   if (canvas.value) resizeObserver.observe(canvas.value)
   nextTick(fitWorld)
 })
